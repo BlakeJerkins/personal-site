@@ -37,7 +37,15 @@
       </v-card-actions>
       <v-expand-transition>
         <v-card v-show="showAmortization">
-          <!-- Render the amortization chart here -->
+          <v-card-title>
+            <h3>Amortization Table</h3>
+          </v-card-title>
+          <v-data-table
+            :headers="amortizationHeaders"
+            :items="amortizationData"
+            :items-per-page="10"
+            class="elevation-1"
+          ></v-data-table>
         </v-card>
       </v-expand-transition>
     </v-card>
@@ -59,6 +67,13 @@ export default class LoanPayoffCalculator extends Vue {
   totalInterestPaid: number = 0;
   amortizationData: any[] = [];
 
+  amortizationHeaders: any[] = [
+    { text: 'Payment Number', value: 'paymentNumber' },
+    { text: 'Principal Paid', value: 'principalPaid' },
+    { text: 'Interest Paid', value: 'interestPaid' },
+    { text: 'Remaining Balance', value: 'remainingBalance' },
+  ];
+
   calculatePayoff(): void {
     const loanAmount = this.loanAmount - this.downPayment;
     const interestRate = this.interestRate / 100;
@@ -71,17 +86,32 @@ export default class LoanPayoffCalculator extends Vue {
     this.monthlyInstallment = numerator / denominator;
     this.totalInterestPaid = (this.monthlyInstallment * numberOfPayments) - loanAmount;
 
-    // Generate the amortization data
     this.amortizationData = this.generateAmortizationData(loanAmount, monthlyInterestRate, numberOfPayments);
 
     this.showResults = true;
   }
 
   generateAmortizationData(loanAmount: number, monthlyInterestRate: number, numberOfPayments: number): any[] {
-    // Implement your logic here to generate the amortization data based on loan details
-    // Return an array containing the amortization data for each payment
-    // Each element of the array should include details such as payment number, principal paid, interest paid, remaining balance, etc.
-    return [];
+    const amortizationData = [];
+
+    let remainingBalance = loanAmount;
+    for (let i = 1; i <= numberOfPayments; i++) {
+      const interestPaid = remainingBalance * monthlyInterestRate;
+      const principalPaid = this.monthlyInstallment - interestPaid;
+
+      remainingBalance -= principalPaid;
+
+      const paymentData = {
+        paymentNumber: i,
+        principalPaid: principalPaid.toFixed(2),
+        interestPaid: interestPaid.toFixed(2),
+        remainingBalance: remainingBalance.toFixed(2),
+      };
+
+      amortizationData.push(paymentData);
+    }
+
+    return amortizationData;
   }
 
   toggleAmortization(): void {
