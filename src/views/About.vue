@@ -1,82 +1,95 @@
 <template>
-  <div class="loan-calculator">
+  <v-container class="loan-calculator">
     <h2>Loan Payoff Calculator</h2>
 
     <!-- Input fields -->
-    <div class="input-container">
-      <label for="loan-amount">Loan Amount:</label>
-      <input id="loan-amount" type="number" v-model="loanAmount" />
-    </div>
-
-    <div class="input-container">
-      <label for="interest-rate">Interest Rate:</label>
-      <input id="interest-rate" type="number" v-model="interestRate" />
-    </div>
-
-    <div class="input-container">
-      <label for="loan-term">Loan Term (in months):</label>
-      <input id="loan-term" type="number" v-model="loanTerm" />
-    </div>
-
-    <div class="input-container">
-      <label for="down-payment">Down Payment (optional):</label>
-      <input id="down-payment" type="number" v-model="downPayment" />
-    </div>
+    <v-row>
+      <v-col cols="12" md="6">
+        <v-text-field v-model="loanAmount" label="Loan Amount" type="number"></v-text-field>
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-text-field v-model="interestRate" label="Interest Rate" type="number"></v-text-field>
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-text-field v-model="loanTerm" label="Loan Term (in months)" type="number"></v-text-field>
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-text-field v-model="downPayment" label="Down Payment (optional)" type="number"></v-text-field>
+      </v-col>
+    </v-row>
 
     <!-- Calculate button -->
-    <button @click="calculatePayoff" class="calculate-button">Calculate</button>
+    <v-btn color="primary" @click="calculatePayoff">Calculate</v-btn>
 
     <!-- Results -->
-    <div class="results" v-if="showResults">
-      <h3>Loan Payoff Details:</h3>
-      <p>Monthly Installment: {{ monthlyInstallment }}</p>
-      <p>Total Interest Paid: {{ totalInterestPaid }}</p>
-
-      <!-- Collapsible Amortization Chart -->
-      <button @click="toggleAmortization" class="chart-toggle-button">
-        {{ showAmortization ? 'Hide Amortization Chart' : 'Show Amortization Chart' }}
-      </button>
-      <div class="amortization-chart" v-if="showAmortization">
-        <!-- Render the amortization chart here -->
-      </div>
-    </div>
-  </div>
+    <v-card v-if="showResults">
+      <v-card-title>
+        <h3>Loan Payoff Details:</h3>
+      </v-card-title>
+      <v-card-text>
+        <p>Monthly Installment: {{ monthlyInstallment }}</p>
+        <p>Total Interest Paid: {{ totalInterestPaid }}</p>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" @click="toggleAmortization">
+          {{ showAmortization ? 'Hide Amortization Chart' : 'Show Amortization Chart' }}
+        </v-btn>
+      </v-card-actions>
+      <v-expand-transition>
+        <v-card v-show="showAmortization">
+          <!-- Render the amortization chart here -->
+        </v-card>
+      </v-expand-transition>
+    </v-card>
+  </v-container>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      loanAmount: 0,
-      interestRate: 0,
-      loanTerm: 0,
-      downPayment: 0,
-      showResults: false,
-      showAmortization: false,
-      monthlyInstallment: 0,
-      totalInterestPaid: 0,
-      amortizationData: [], // Placeholder for amortization chart data
-    };
-  },
-  methods: {
-    calculatePayoff() {
-      // Perform loan payoff calculation here
-      // Update the calculated results and amortizationData
-      this.monthlyInstallment = // Calculate the monthly installment
-      this.totalInterestPaid = // Calculate the total interest paid
+<script lang="ts">
+import { Component, Vue } from 'vue-property-decorator';
 
-      // Generate the amortization data
-      this.amortizationData = // Generate the amortization data based on loan details
+@Component
+export default class LoanPayoffCalculator extends Vue {
+  loanAmount: number = 0;
+  interestRate: number = 0;
+  loanTerm: number = 0;
+  downPayment: number = 0;
+  showResults: boolean = false;
+  showAmortization: boolean = false;
+  monthlyInstallment: number = 0;
+  totalInterestPaid: number = 0;
+  amortizationData: any[] = [];
 
-      this.showResults = true;
-    },
-    toggleAmortization() {
-      this.showAmortization = !this.showAmortization;
-    },
-  },
-};
+  calculatePayoff(): void {
+    const loanAmount = this.loanAmount - this.downPayment;
+    const interestRate = this.interestRate / 100;
+    const monthlyInterestRate = interestRate / 12;
+    const numberOfPayments = this.loanTerm * 12;
+
+    const numerator = loanAmount * monthlyInterestRate;
+    const denominator = 1 - Math.pow(1 + monthlyInterestRate, -numberOfPayments);
+
+    this.monthlyInstallment = numerator / denominator;
+    this.totalInterestPaid = (this.monthlyInstallment * numberOfPayments) - loanAmount;
+
+    // Generate the amortization data
+    this.amortizationData = this.generateAmortizationData(loanAmount, monthlyInterestRate, numberOfPayments);
+
+    this.showResults = true;
+  }
+
+  generateAmortizationData(loanAmount: number, monthlyInterestRate: number, numberOfPayments: number): any[] {
+    // Implement your logic here to generate the amortization data based on loan details
+    // Return an array containing the amortization data for each payment
+    // Each element of the array should include details such as payment number, principal paid, interest paid, remaining balance, etc.
+    return [];
+  }
+
+  toggleAmortization(): void {
+    this.showAmortization = !this.showAmortization;
+  }
+}
 </script>
 
-<style>
+<style scoped>
 /* Add your desired CSS styling for the component here */
 </style>
